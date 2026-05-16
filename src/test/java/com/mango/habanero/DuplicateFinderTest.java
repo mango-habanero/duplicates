@@ -4,14 +4,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.of;
 
 @DisplayName("DuplicateFinder")
 class DuplicateFinderTest {
@@ -33,46 +33,36 @@ class DuplicateFinderTest {
             assertThrows(IllegalArgumentException.class, () -> finder.findDuplicates(null));
         }
 
-        @Test
-        @DisplayName("Returns empty set when input is empty")
-        void givenEmptyArrayWhenFindDuplicatesCalledThenReturnsEmptySet() {
-            assertTrue(finder.findDuplicates(new int[]{}).isEmpty());
-        }
-
-        @Test
-        @DisplayName("Returns empty set when input contains a single element")
-        void givenSingleElementWhenFindDuplicatesCalledThenReturnsEmptySet() {
-            assertTrue(finder.findDuplicates(new int[]{1}).isEmpty());
-        }
-
-        @Test
+        @ParameterizedTest(name = "Returns empty set for input: {0}")
+        @MethodSource("emptyResultInputs")
         @DisplayName("Returns empty set when no duplicates exist")
-        void givenAllUniqueElementsWhenFindDuplicatesCalledThenReturnsEmptySet() {
-            assertTrue(finder.findDuplicates(new int[]{1, 2, 3}).isEmpty());
+        void givenNoDuplicatesWhenFindDuplicatesCalledThenReturnsEmptySet(int[] input) {
+            assertTrue(finder.findDuplicates(input).isEmpty());
         }
 
-        @Test
-        @DisplayName("Returns single duplicate when one value appears more than once")
-        void givenSingleDuplicateWhenFindDuplicatesCalledThenReturnsThatValue() {
-            assertEquals(Set.of(2), finder.findDuplicates(new int[]{1, 2, 3, 2}));
+        static Stream<int[]> emptyResultInputs() {
+            return Stream.of(
+                    new int[]{},
+                    new int[]{1},
+                    new int[]{1, 2, 3}
+            );
         }
 
-        @Test
-        @DisplayName("Returns all duplicates when multiple values appear more than once")
-        void givenMultipleDuplicatesWhenFindDuplicatesCalledThenReturnsAllDuplicates() {
-            assertEquals(Set.of(1, 2), finder.findDuplicates(new int[]{1, 2, 3, 4, 2, 5, 1}));
+        @ParameterizedTest(name = "Returns {1} for input: {0}")
+        @MethodSource("duplicateInputs")
+        @DisplayName("Returns correct duplicates for input")
+        void givenDuplicatesWhenFindDuplicatesCalledThenReturnsExpectedSet(int[] input, Set<Integer> expected) {
+            assertEquals(expected, finder.findDuplicates(input));
         }
 
-        @Test
-        @DisplayName("Returns duplicates in order of first occurrence")
-        void givenOutOfOrderDuplicatesWhenFindDuplicatesCalledThenPreservesInsertionOrder() {
-            assertIterableEquals(List.of(3, 1), finder.findDuplicates(new int[]{3, 1, 3, 1}));
-        }
-
-        @Test
-        @DisplayName("Returns all values when every element is duplicated")
-        void givenAllElementsDuplicatedWhenFindDuplicatesCalledThenReturnsAllValues() {
-            assertEquals(Set.of(1, 2), finder.findDuplicates(new int[]{1, 2, 1, 2}));
+        static Stream<org.junit.jupiter.params.provider.Arguments> duplicateInputs() {
+            return Stream.of(
+                    of(new int[]{1, 2, 3, 2},          Set.of(2)),
+                    of(new int[]{1, 2, 3, 4, 2, 5, 1}, Set.of(1, 2)),
+                    of(new int[]{3, 1, 3, 1},           Set.of(1, 3)),
+                    of(new int[]{1, 2, 1, 2},           Set.of(1, 2)),
+                    of(new int[]{1, 1, 1},              Set.of(1))
+            );
         }
     }
 }
