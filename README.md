@@ -18,7 +18,3 @@ mvn compile exec:java -Dexec.mainClass="com.mango.habanero.Main"
 ```bash
 mvn test
 ```
-
-## Approach
-
-A single pass over the input using two `LinkedHashSet`s — one to track seen values, one to collect duplicates. Insertion order is preserved, producing deterministic output. Time complexity is O(n).
